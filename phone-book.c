@@ -140,7 +140,59 @@ void find_record_from_email(char *command) {
 }
 
 void update_records(char *command) {
-    ;
+    char *substr = malloc(sizeof(char) * (strlen(command) - 10 + 1));
+    int i = 11;
+    int j = 0;
+    while (command[i] != '\0') {
+        substr[j++] = command[i++];
+    }
+    substr[j] = '\0';
+    printf("%s\n", substr);
+    FILE *file = fopen(file_name, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        free(substr);
+        return;
+    }
+
+    char line[MAX_COMMAND_SIZE];
+    int num = 0;
+    while (fgets(line, sizeof(line), file) != NULL) {
+        if (line[0] != '\n' && num % 4 == 2) {
+            char *email = strtok(line, "\n");
+            printf("%s\n", email);
+            if (strcmp(email, substr) == 0) {
+                printf("%s\n", email);
+                break;
+            }
+        }
+        num++;
+    }
+    printf("%d\n", num);
+    int num1 = 0;
+    rewind(file);
+    while (fgets(line, sizeof(line), file) != NULL) {
+        if (line[0] != '\n' && num1 == num - 2) {
+            char *first_name = strtok(line, "\n");
+            printf("First Name: %s\n", first_name);
+        }
+        else if (line[0] != '\n' && num1 == num - 1) {
+            char *last_name = strtok(line, "\n");
+            printf("Last Name: %s\n", last_name);
+        }
+        else if (line[0] != '\n' && num1 == num) {
+            char *email = strtok(line, "\n");
+            printf("Email: %s\n", email);
+        }
+        else if (line[0] != '\n' && num1 == num + 1) {
+            char *phone_number = strtok(line, "\n");
+            printf("Phone number: %s\n", phone_number);
+        }
+        num1++;
+    }
+
+    free(substr);
+    fclose(file);
 }
 
 void delete_record(char *command) {
