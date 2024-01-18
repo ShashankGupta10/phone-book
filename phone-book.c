@@ -214,14 +214,8 @@ void update_records(char *command)
     k++;
     printf("%s\n %s\n %s\n %s\n", first_name, last_name, email, phone_number);
     m = 0;
-    // while (substr[k] != ' ' && substr[k] != '\0')
-    // {
-    //     email[m++] = substr[k++];
-    // }
-    // email[m] = '\0';
     printf("%s\n", email);
     printf("%d\n", strlen(email));
-    // Print or use the extracted email
     printf("Extracted Email: %s\n", email);
     printf("Searching for record with email: %s\n", email);
     FILE *file = fopen(file_name, "r");
@@ -291,7 +285,6 @@ void update_records(char *command)
     fclose(file);
     fclose(temp_file);
 
-    // Rename the temporary file to the original file
     remove(file_name);
     rename("temp_phone_book.txt", file_name);
 
@@ -301,7 +294,81 @@ void update_records(char *command)
 
 void delete_record(char *command)
 {
-    ;
+    char *substr = malloc(sizeof(char) * (strlen(command) - 11 + 1));
+    int i = 10;
+    int j = 0;
+    while (command[i] != '\0')
+    {
+        substr[j++] = command[i++];
+    }
+    substr[j] = '\0';
+
+    FILE *file = fopen(file_name, "r");
+    if (file == NULL)
+    {
+        perror("Error opening file");
+        free(substr);
+        return;
+    }
+
+    FILE *temp_file = fopen("temp_file.txt", "w");
+    if (temp_file == NULL)
+    {
+        perror("Error creating temporary file");
+        fclose(file);
+        free(substr);
+        return;
+    }
+
+    char line[MAX_COMMAND_SIZE];
+    int num = 0;
+    int found = 0;
+    printf("%s\n", substr);
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
+        if (line[0] != '\n' && num % 4 == 2)
+        {
+            char *email = strtok(line, "\n");
+            if (strcmp(email, substr) == 0)
+            {
+                found = 1;
+                break;
+            }
+        }
+        num++;
+    }
+
+    if (!found)
+    {
+        printf("Record not found for deletion.\n");
+        fclose(file);
+        fclose(temp_file);
+        free(substr);
+        remove("temp_file.txt");
+        return;
+    }
+
+    rewind(file);
+    printf("%d\n", num);
+    int n = 0;
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
+        if (line[0] != '\n' && !(n >= num - 2 && n <= num + 1))
+        {
+            fputs(line, temp_file);
+        }
+        n++;
+    }
+
+    fclose(file);
+    fclose(temp_file);
+
+    remove(file_name);
+    rename("temp_file.txt", file_name);
+
+    printf("Record deleted successfully.\n");
+
+    free(substr);
 }
 
 void find_record_from_first_name(char *command)
@@ -334,7 +401,7 @@ int main()
                     find_record_from_email(command);
                 else if (command[3] == 'u' && command[4] == 'p' && command[5] == 'd' && command[6] == 'a' && command[7] == 't' && command[8] == 'e')
                     update_records(command);
-                else if (strcmp(command, "pb delete") == 0)
+                else if (command[3] == 'd' && command[4] == 'e' && command[5] == 'l' && command[6] == 'e' && command[7] == 't' && command[8] == 'e')
                     delete_record(command);
                 else if (strcmp(command, "pb find -n") == 0)
                     find_record_from_first_name(command);
